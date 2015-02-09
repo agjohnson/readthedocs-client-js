@@ -17,7 +17,7 @@ gulp.task('browserify', function () {
 });
 
 /* Tasks */
-gulp.task('build', ['browserify']);
+gulp.task('build', ['test', 'browserify']);
 
 gulp.task('test', function () {
     gulp.src(['tests/*.js'])

@@ -86,7 +86,7 @@ exports.testEmbedFromGlobalMissing = function (test) {
                 'version': undefined,
                 'doc': undefined,
                 'section': undefined,
-                'api_host': 'https://api.grokthedocs.org'
+                'api_host': 'https://api.grokthedocs.com'
             })
             test.done();
         }
@@ -113,7 +113,7 @@ exports.testEmbedFetch = function (test) {
                 test.equal(data['foo'], 'bar');
                 test.ok(jQuery.ajax.calledWithMatch({
                     'type': 'GET',
-                    url: 'https://api.grokthedocs.org/api/v1/embed/',
+                    url: 'https://api.grokthedocs.com/api/v1/embed/',
                     crossDomain: true,
                 }));
                 test.deepEqual(embed.cache, {'foo': 'bar'});
@@ -149,7 +149,7 @@ exports.testEmbedFetchFailure = function (test) {
                     test.equal(data['foo'], 'bar');
                     test.ok(jQuery.ajax.calledWithMatch({
                         'type': 'GET',
-                        url: 'https://api.grokthedocs.org/api/v1/embed/',
+                        url: 'https://api.grokthedocs.com/api/v1/embed/',
                         crossDomain: true,
                     }));
                     test.equal(embed.cache, null);
