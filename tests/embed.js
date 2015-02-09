@@ -99,7 +99,7 @@ exports.testEmbedFetch = function (test) {
     // Mock jQuery ajax method
     var jQuery = require('../bower_components/jquery-min/jquery.min');
     sinon.stub(jQuery, 'ajax')
-        .yieldsTo('success', {'foo': 'bar'}, 200, {});
+        .yieldsTo('success', {'meta': {'project': 'foobar'}}, 200, {});
 
     jsdom.env(
         '<html><body></body></html>',
@@ -109,14 +109,14 @@ exports.testEmbedFetch = function (test) {
             window.jQuery = jQuery;
             var Embed = require('../lib/readthedocs').Embed,
                 embed = new Embed('project', 'version', 'doc', 'section');
-            embed.fetch(function (data) {
-                test.equal(data['foo'], 'bar');
+            embed.fetch(function (section) {
+                test.equal(section.project, 'foobar');
                 test.ok(jQuery.ajax.calledWithMatch({
                     'type': 'GET',
                     url: 'https://api.grokthedocs.com/api/v1/embed/',
                     crossDomain: true,
                 }));
-                test.deepEqual(embed.cache, {'foo': 'bar'});
+                test.deepEqual(embed.cache.project, 'foobar');
                 jQuery.ajax.restore();
                 test.done();
             });

@@ -17,17 +17,17 @@ gulp.task('browserify', function () {
 });
 
 /* Tasks */
-gulp.task('build', ['test', 'browserify']);
+gulp.task('build', ['browserify']);
+
+gulp.task('dev', ['build', 'watch']);
 
 gulp.task('test', function () {
     gulp.src(['tests/*.js'])
         .pipe(nodeunit())
 });
 
-gulp.task('dev', ['build', 'watch']);
-
 gulp.task('watch', function () {
     gulp.watch('lib/*.js', ['build']);
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', ['test', 'build']);
