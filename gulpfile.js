@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
     browserify = require('gulp-browserify'),
     gulp_util = require('gulp-util'),
+    nodeunit = require('gulp-nodeunit-runner'),
     debowerify = require('debowerify');
 
 gulp.task('browserify', function () {
@@ -10,12 +11,18 @@ gulp.task('browserify', function () {
         }))
         .on('error', function (event) {
             gulp_util.log(event.message);
+            gulp_util.beep();
         })
         .pipe(gulp.dest('dist/'));
 });
 
 /* Tasks */
 gulp.task('build', ['browserify']);
+
+gulp.task('test', function () {
+    gulp.src(['tests/*.js'])
+        .pipe(nodeunit())
+});
 
 gulp.task('dev', ['build', 'watch']);
 
