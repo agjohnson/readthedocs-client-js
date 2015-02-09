@@ -1,0 +1,25 @@
+{
+  "name": "readthedocs-client",
+  "version": "0.0.1",
+  "authors": [
+    "Anthony Johnson <anthony@readthedocs.com>"
+  ],
+  "description": "Read the Docs Client",
+  "main": "lib/readthedocs.js",
+  "keywords": [
+    "readthedocs"
+  ],
+  "license": "MIT",
+  "homepage": "http://readthedocs.org",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-min": "~2.1.1"
+  }
+}
