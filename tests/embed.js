@@ -1,14 +1,15 @@
 /* Client embed tests */
 
-var jsdom = require('jsdom');
+var jsdom = require('jsdom'),
+    sinon = require('sinon');
 
 exports.testEmbed = function (test) {
     test.expect(4);
     var Embed = require('../lib/readthedocs').Embed,
-        embed = new Embed('project', 'version', 'file', 'section');
+        embed = new Embed('project', 'version', 'doc', 'section');
     test.equal(embed.project, 'project');
     test.equal(embed.version, 'version');
-    test.equal(embed.file, 'file');
+    test.equal(embed.doc, 'doc');
     test.equal(embed.section, 'section');
     test.done();
 };
@@ -56,14 +57,14 @@ exports.testEmbedFromGlobalPass = function (test) {
             window.READTHEDOCS_EMBED = {
                 'project': 'project',
                 'version': 'version',
-                'file': 'file',
+                'doc': 'doc',
                 'section': 'section'
             };
             var Embed = require('../lib/readthedocs').Embed,
                 embed = Embed.from_global();
             test.equal(embed.project, 'project');
             test.equal(embed.version, 'version');
-            test.equal(embed.file, 'file');
+            test.equal(embed.doc, 'doc');
             test.equal(embed.section, 'section');
             test.done();
         }
@@ -83,11 +84,79 @@ exports.testEmbedFromGlobalMissing = function (test) {
             test.deepEqual(embed , {
                 'project': undefined,
                 'version': undefined,
-                'file': undefined,
+                'doc': undefined,
                 'section': undefined,
                 'api_host': 'https://api.grokthedocs.org'
             })
             test.done();
+        }
+    );
+};
+
+exports.testEmbedFetch = function (test) {
+    test.expect(3);
+
+    // Mock jQuery ajax method
+    var jQuery = require('../bower_components/jquery-min/jquery.min');
+    sinon.stub(jQuery, 'ajax')
+        .yieldsTo('success', {'foo': 'bar'}, 200, {});
+
+    jsdom.env(
+        '<html><body></body></html>',
+        [],
+        function (errs, window) {
+            global.window = window;
+            window.jQuery = jQuery;
+            var Embed = require('../lib/readthedocs').Embed,
+                embed = new Embed('project', 'version', 'doc', 'section');
+            embed.fetch(function (data) {
+                test.equal(data['foo'], 'bar');
+                test.ok(jQuery.ajax.calledWithMatch({
+                    'type': 'GET',
+                    url: 'https://api.grokthedocs.org/api/v1/embed/',
+                    crossDomain: true,
+                }));
+                test.deepEqual(embed.cache, {'foo': 'bar'});
+                jQuery.ajax.restore();
+                test.done();
+            });
+        }
+    );
+};
+
+exports.testEmbedFetchFailure = function (test) {
+    test.expect(3);
+
+    // Mock jQuery ajax method
+    var jQuery = require('../bower_components/jquery-min/jquery.min');
+    sinon.stub(jQuery, 'ajax')
+        .yieldsTo('error', {'foo': 'bar'}, 200, new Error('Foobar'));
+
+    jsdom.env(
+        '<html><body></body></html>',
+        [],
+        function (errs, window) {
+            global.window = window;
+            window.jQuery = jQuery;
+            var Embed = require('../lib/readthedocs').Embed,
+                embed = new Embed('project', 'version', 'doc', 'section');
+            embed.fetch(
+                function (data) {
+                    test.ok(false);
+                    test.done();
+                },
+                function (data) {
+                    test.equal(data['foo'], 'bar');
+                    test.ok(jQuery.ajax.calledWithMatch({
+                        'type': 'GET',
+                        url: 'https://api.grokthedocs.org/api/v1/embed/',
+                        crossDomain: true,
+                    }));
+                    test.equal(embed.cache, null);
+                    jQuery.ajax.restore();
+                    test.done();
+                }
+            );
         }
     );
 };
