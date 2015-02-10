@@ -48,13 +48,6 @@ var Embed = function (project, version, doc, section, config) {
 };
 
 // Factory methods for constructing Embed instances
-Embed.from_api = function (endpoint) {
-    throw new Error('Not implemented yet.');
-    /* TODO make this work
-    return new Embed(project, version, doc, section);
-    */
-}
-
 Embed.from_global = function () {
     try {
         return new Embed(
