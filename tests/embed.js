@@ -14,19 +14,6 @@ exports.testEmbed = function (test) {
     test.done();
 };
 
-exports.testEmbedFromAPI = function (test) {
-    test.expect(1);
-    var Embed = require('../lib/readthedocs').Embed;
-    test.throws(
-        function () {
-            var embed = Embed.from_api();
-        },
-        Error,
-        'From API not implemented yet'
-    );
-    test.done();
-};
-
 exports.testEmbedFromGlobalFail = function (test) {
     test.expect(1);
     jsdom.env(

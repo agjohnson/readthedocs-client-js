@@ -20,6 +20,7 @@
     "tests"
   ],
   "dependencies": {
-    "jquery-min": "~2.1.1"
+    "jquery-min": "~2.1.1",
+    "reqwest": "~1.1.5"
   }
 }
