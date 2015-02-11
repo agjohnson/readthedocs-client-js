@@ -1,12 +1,19 @@
 /* Client embed tests */
 
 var jsdom = require('jsdom'),
-    sinon = require('sinon');
+    sinon = require('sinon'),
+    proxyquire = require('proxyquire').noCallThru();
+
+var Embed = proxyquire('../lib/embed', {
+        'reqwest': function (options) {
+            console.log(options)
+        }
+    })
+    .Embed;
 
 exports.testEmbed = function (test) {
     test.expect(4);
-    var Embed = require('../lib/readthedocs').Embed,
-        embed = new Embed('project', 'version', 'doc', 'section');
+    var embed = new Embed('project', 'version', 'doc', 'section');
     test.equal(embed.project, 'project');
     test.equal(embed.version, 'version');
     test.equal(embed.doc, 'doc');
@@ -21,7 +28,6 @@ exports.testEmbedFromGlobalFail = function (test) {
         [],
         function (errs, window) {
             global.window = window;
-            var Embed = require('../lib/readthedocs').Embed;
             test.throws(
                 function () {
                     var embed = Embed.from_global();
@@ -47,8 +53,7 @@ exports.testEmbedFromGlobalPass = function (test) {
                 'doc': 'doc',
                 'section': 'section'
             };
-            var Embed = require('../lib/readthedocs').Embed,
-                embed = Embed.from_global();
+            var embed = Embed.from_global();
             test.equal(embed.project, 'project');
             test.equal(embed.version, 'version');
             test.equal(embed.doc, 'doc');
@@ -66,8 +71,7 @@ exports.testEmbedFromGlobalMissing = function (test) {
         function (errs, window) {
             global.window = window;
             window.READTHEDOCS_EMBED = {'missing': 'everything'};
-            var Embed = require('../lib/readthedocs').Embed,
-                embed = Embed.from_global();
+            var embed = Embed.from_global();
             test.deepEqual(embed , {
                 'project': undefined,
                 'version': undefined,
@@ -81,69 +85,55 @@ exports.testEmbedFromGlobalMissing = function (test) {
 };
 
 exports.testEmbedFetch = function (test) {
-    test.expect(3);
+    test.expect(5);
 
-    // Mock jQuery ajax method
-    var jQuery = require('../bower_components/jquery-min/jquery.min');
-    sinon.stub(jQuery, 'ajax')
-        .yieldsTo('success', {'meta': {'project': 'foobar'}}, 200, {});
+    var stub_req = sinon.stub().yieldsTo(
+            'success',
+            {meta: {project: 'foobar'}}
+        ),
+        Embed = proxyquire('../lib/embed', {
+            'reqwest': stub_req
+        }).Embed,
+        embed = new Embed('project', 'version', 'doc', 'section');
 
-    jsdom.env(
-        '<html><body></body></html>',
-        [],
-        function (errs, window) {
-            global.window = window;
-            window.jQuery = jQuery;
-            var Embed = require('../lib/readthedocs').Embed,
-                embed = new Embed('project', 'version', 'doc', 'section');
-            embed.fetch(function (section) {
-                test.equal(section.project, 'foobar');
-                test.ok(jQuery.ajax.calledWithMatch({
-                    'type': 'GET',
-                    url: 'https://api.grokthedocs.com/api/v1/embed/',
-                    crossDomain: true,
-                }));
-                test.deepEqual(embed.cache.project, 'foobar');
-                jQuery.ajax.restore();
-                test.done();
-            });
-        }
-    );
+    embed.fetch(function (section) {
+        test.equal(section.project, 'foobar');
+        test.ok(stub_req.calledWith(sinon.match({method: 'get'})));
+        test.ok(stub_req.calledWith(sinon.match({crossDomain: true})));
+        test.ok(stub_req.calledWith(sinon.match({
+            url: 'https://api.grokthedocs.com/api/v1/embed/'
+        })));
+        test.deepEqual(embed.cache.project, 'foobar');
+        test.done();
+    });
 };
 
 exports.testEmbedFetchFailure = function (test) {
-    test.expect(3);
+    test.expect(6);
 
-    // Mock jQuery ajax method
-    var jQuery = require('../bower_components/jquery-min/jquery.min');
-    sinon.stub(jQuery, 'ajax')
-        .yieldsTo('error', {'foo': 'bar'}, 200, new Error('Foobar'));
+    var stub_req = sinon.stub().yieldsTo(
+            'error',
+            {'foo': 'bar'}
+        ),
+        Embed = proxyquire('../lib/embed', {
+            'reqwest': stub_req
+        }).Embed,
+        embed = new Embed('project', 'version', 'doc', 'section');
 
-    jsdom.env(
-        '<html><body></body></html>',
-        [],
-        function (errs, window) {
-            global.window = window;
-            window.jQuery = jQuery;
-            var Embed = require('../lib/readthedocs').Embed,
-                embed = new Embed('project', 'version', 'doc', 'section');
-            embed.fetch(
-                function (data) {
-                    test.ok(false);
-                    test.done();
-                },
-                function (data) {
-                    test.equal(data['foo'], 'bar');
-                    test.ok(jQuery.ajax.calledWithMatch({
-                        'type': 'GET',
-                        url: 'https://api.grokthedocs.com/api/v1/embed/',
-                        crossDomain: true,
-                    }));
-                    test.equal(embed.cache, null);
-                    jQuery.ajax.restore();
-                    test.done();
-                }
-            );
+    embed.fetch(
+        function (section) {
+            test.ok(false);
+        },
+        function (error) {
+            test.equal(error.project, null);
+            test.equal(error['foo'], 'bar');
+            test.ok(stub_req.calledWith(sinon.match({method: 'get'})));
+            test.ok(stub_req.calledWith(sinon.match({crossDomain: true})));
+            test.ok(stub_req.calledWith(sinon.match({
+                url: 'https://api.grokthedocs.com/api/v1/embed/'
+            })));
+            test.deepEqual(embed.cache, null);
+            test.done();
         }
     );
 };

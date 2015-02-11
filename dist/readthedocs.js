@@ -647,8 +647,7 @@ exports.Section = Section;
 },{}],3:[function(require,module,exports){
 /* Read the Docs Embed functions */
 
-var Section = require('./doc').Section,
-    reqwest = require("./../bower_components/reqwest/reqwest.js");
+var Section = require('./doc').Section;
 
 
 var Embed = function (project, version, doc, section, config) {
@@ -703,7 +702,8 @@ Embed.prototype.show_modal = function () {
 };
 
 Embed.prototype.fetch = function (callback, error_callback) {
-    var self = this;
+    var self = this,
+        reqwest = require("./../bower_components/reqwest/reqwest.js");
 
     // Default error handler
     if (typeof error_callback == 'undefined') {
@@ -747,6 +747,7 @@ exports.Embed = Embed;
 /* Read the Docs Client */
 
 var embed = require('./embed');
+
 
 exports.Embed = embed.Embed;
 
