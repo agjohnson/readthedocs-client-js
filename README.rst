@@ -4,7 +4,17 @@ Read the Docs Client
 Usage
 -----
 
-TBA
+Embedding Content
+~~~~~~~~~~~~~~~~~
+
+To embed content from existing documentation on Read the Docs, use this library
+with a call similar to this::
+
+    <script src="readthedocs-client.js"></script>
+    <script>
+        var embed = new Embed('requests', 'latest', 'index', 'Translations');
+        e.show_modal();
+    </script>
 
 Development
 -----------
