@@ -651,6 +651,7 @@ var Section = require('./doc').Section;
 
 
 var Embed = function (project, version, doc, section, config) {
+    // Build state
     this.project = project;
     this.version = version;
     this.doc = doc;
@@ -740,6 +741,13 @@ Embed.prototype.fetch = function (callback, error_callback) {
         })
     }
 };
+
+Embed.prototype.link_stylesheet = function () {
+    var css_link = document.createElement('link');
+    css_link.rel = 'stylesheet';
+    css_link.href = 'https://media.readthedocs.org/css/sphinx_rtd_theme.css';
+    document.getElementsByTagName('head')[0].appendChild(css_link);
+}
 
 exports.Embed = Embed;
 
