@@ -38,3 +38,8 @@ To watch files and continually build on changes::
 To run the test suite in @tests/@ via `Nodeunit`_::
 
     gulp test
+
+.. _`Gulp`: http://gulpjs.com
+.. _`Browserify`: http://browserify.org
+.. _`Bower`: http://bower.io
+.. _`Nodeunit`: https://github.com/caolan/nodeunit
