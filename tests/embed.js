@@ -30,7 +30,7 @@ exports.testEmbedFromGlobalFail = function (test) {
             global.window = window;
             test.throws(
                 function () {
-                    var embed = Embed.from_global();
+                    var embed = Embed.fromGlobal();
                 },
                 Error,
                 'Missing variable throws exception'
@@ -53,7 +53,7 @@ exports.testEmbedFromGlobalPass = function (test) {
                 'doc': 'doc',
                 'section': 'section'
             };
-            var embed = Embed.from_global();
+            var embed = Embed.fromGlobal();
             test.equal(embed.project, 'project');
             test.equal(embed.version, 'version');
             test.equal(embed.doc, 'doc');
@@ -71,7 +71,7 @@ exports.testEmbedFromGlobalMissing = function (test) {
         function (errs, window) {
             global.window = window;
             window.READTHEDOCS_EMBED = {'missing': 'everything'};
-            var embed = Embed.from_global();
+            var embed = Embed.fromGlobal();
             test.deepEqual(embed , {
                 'project': undefined,
                 'version': undefined,
