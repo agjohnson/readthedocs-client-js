@@ -690,8 +690,10 @@ Embed.prototype.insertContent = function (elem) {
         self = this;
 
     iframe.style.display = 'none';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
+
+    if (window.jQuery && elem instanceof window.jQuery) {
+        elem = elem.get(0);
+    }
 
     if (typeof(elem) != 'undefined') {
         while (elem.children.length > 0) {
