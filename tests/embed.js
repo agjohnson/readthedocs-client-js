@@ -2,7 +2,8 @@
 
 var jsdom = require('jsdom'),
     sinon = require('sinon'),
-    proxyquire = require('proxyquire').noCallThru();
+    proxyquire = require('proxyquire').noCallThru(),
+    doc = require('../lib/doc');
 
 var Embed = proxyquire('../lib/embed', {
         'reqwest': function (options) {
@@ -11,105 +12,48 @@ var Embed = proxyquire('../lib/embed', {
     })
     .Embed;
 
+
 exports.testEmbed = function (test) {
-    test.expect(4);
-    var embed = new Embed('project', 'version', 'doc', 'section');
-    test.equal(embed.project, 'project');
-    test.equal(embed.version, 'version');
-    test.equal(embed.doc, 'doc');
-    test.equal(embed.section, 'section');
+    test.expect(2);
+    var embed = new Embed();
+    test.equal(embed._api_host, 'https://api.grokthedocs.com');
+    var embed = new Embed({'api_host': 'http://localhost'});
+    test.equal(embed._api_host, 'http://localhost');
     test.done();
 };
 
-exports.testEmbedFromGlobalFail = function (test) {
-    test.expect(1);
-    jsdom.env(
-        '<html><body></body></html>',
-        [],
-        function (errs, window) {
-            global.window = window;
-            test.throws(
-                function () {
-                    var embed = Embed.fromGlobal();
-                },
-                Error,
-                'Missing variable throws exception'
-            );
-            test.done();
-        }
-    );
-}
-
-exports.testEmbedFromGlobalPass = function (test) {
-    test.expect(4);
-    jsdom.env(
-        '<html><body></body></html>',
-        [],
-        function (errs, window) {
-            global.window = window;
-            window.READTHEDOCS_EMBED = {
-                'project': 'project',
-                'version': 'version',
-                'doc': 'doc',
-                'section': 'section'
-            };
-            var embed = Embed.fromGlobal();
-            test.equal(embed.project, 'project');
-            test.equal(embed.version, 'version');
-            test.equal(embed.doc, 'doc');
-            test.equal(embed.section, 'section');
-            test.done();
-        }
-    );
-};
-
-exports.testEmbedFromGlobalMissing = function (test) {
-    test.expect(1);
-    jsdom.env(
-        '<html><body></body></html>',
-        [],
-        function (errs, window) {
-            global.window = window;
-            window.READTHEDOCS_EMBED = {'missing': 'everything'};
-            var embed = Embed.fromGlobal();
-            test.deepEqual(embed , {
-                'project': undefined,
-                'version': undefined,
-                'doc': undefined,
-                'section': undefined,
-                'api_host': 'https://api.grokthedocs.com'
-            })
-            test.done();
-        }
-    );
-};
-
 exports.testEmbedFetch = function (test) {
-    test.expect(5);
+    test.expect(8);
 
     var stub_req = sinon.stub().yieldsTo(
             'success',
-            {meta: {project: 'foobar'}}
+            {content: 'Foobar'}
         ),
         Embed = proxyquire('../lib/embed', {
             'reqwest': stub_req
         }).Embed,
-        embed = new Embed('project', 'version', 'doc', 'section');
+        embed = new Embed();
 
-    embed.fetch(function (section) {
-        test.equal(section.project, 'foobar');
-        test.ok(stub_req.calledWith(sinon.match({method: 'get'})));
-        test.ok(stub_req.calledWith(sinon.match({crossDomain: true})));
-        test.ok(stub_req.calledWith(sinon.match({
-            url: 'https://api.grokthedocs.com/api/v1/embed/'
-        })));
-        test.deepEqual(embed.cache.project, 'foobar');
-        test.done();
-    });
+    embed.section(
+        'project', 'version', 'doc', 'section',
+        function (section) {
+            test.equal(section.project, 'project');
+            test.equal(section.version, 'version');
+            test.equal(section.doc, 'doc');
+            test.equal(section.section, 'section');
+            test.equal(section.content, 'Foobar');
+            test.ok(stub_req.calledWith(sinon.match({method: 'get'})));
+            test.ok(stub_req.calledWith(sinon.match({crossDomain: true})));
+            test.ok(stub_req.calledWith(sinon.match({
+                url: 'https://api.grokthedocs.com/api/v1/embed/'
+            })));
+            test.done();
+        }
+    );
 };
 
 exports.testEmbedFetchFailure = function (test) {
-    test.expect(6);
+    test.expect(5);
 
     var stub_req = sinon.stub().yieldsTo(
             'error',
@@ -118,9 +62,10 @@ exports.testEmbedFetchFailure = function (test) {
         Embed = proxyquire('../lib/embed', {
             'reqwest': stub_req
         }).Embed,
-        embed = new Embed('project', 'version', 'doc', 'section');
+        embed = new Embed();
 
-    embed.fetch(
+    embed.section(
+        'project', 'version', 'doc', 'section',
         function (section) {
             test.ok(false);
         },
@@ -132,7 +77,6 @@ exports.testEmbedFetchFailure = function (test) {
             test.ok(stub_req.calledWith(sinon.match({
                 url: 'https://api.grokthedocs.com/api/v1/embed/'
             })));
-            test.deepEqual(embed.cache, null);
             test.done();
         }
     );
