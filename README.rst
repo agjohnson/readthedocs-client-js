@@ -12,9 +12,15 @@ with a call similar to this::
 
     <script src="readthedocs-client.js"></script>
     <script>
-        var embed = new Embed('requests', 'latest', 'index', 'Testimonials'),
+        var embed = new Embed(),
             wrapper = document.getElementById('wrapper');
-        embed.insertContent(wrapper);
+
+        embed.section(
+            'requests', 'latest', 'index', 'Testimonials',
+            function (section) {
+                section.insertContent(wrapper);
+            }
+        ),
     </script>
 
 Development
