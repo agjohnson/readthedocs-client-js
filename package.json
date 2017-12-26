@@ -4,6 +4,7 @@
   "description": "Read the Docs Client",
   "author": "Anthony Johnson <anthony@readthedocs.com>",
   "dependencies": {
+    "reqwest": "^2.0.5"
   },
   "devDependencies": {
     "bower": "^1.3.12",
@@ -18,5 +19,6 @@
     "proxyquire": "^1.3.1"
   },
   "private": true,
-  "license": "MIT"
+  "license": "MIT",
+  "main": "./lib/readthedocs.js"
 }
